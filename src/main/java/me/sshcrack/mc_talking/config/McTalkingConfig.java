@@ -50,7 +50,7 @@ public class McTalkingConfig {
 
         currentAiModel = builder
                 .worldRestart()
-                .comment("What kind of AI model to use. Flash2.5 is more advanced, more expensive but has more voices as well (not recommended for free usage). Flash2.5 burns the free tokens fast. Flash2.5 can only execute functions (for example dropping items, getting information about the colony) when Google Search is enabled.")
+                .comment("What kind of AI model to use. Right now, this is the only one Google offers")
                 .defineEnum("ai_model", AvailableAI.Flash2_5);
         enableFunctionWorkaround = builder
                 .worldRestart()
@@ -105,7 +105,7 @@ public class McTalkingConfig {
 
         modality = builder
                 .worldRestart()
-                .comment("In which format the AI should respond. Can either be text or audio for Flash 2.0, audio only for Flash 2.5. Right now there is no support for text AND audio as far as I know (the value is still in there so it has backwards compatibility).")
+                .comment("In which format the AI should respond. This can be audio only for now. Right now there is no support for text AND audio as far as I know (the value is still in there so it has backwards compatibility).")
                 .defineEnum("ai_modality", ModalityModes.AUDIO);
 
 
