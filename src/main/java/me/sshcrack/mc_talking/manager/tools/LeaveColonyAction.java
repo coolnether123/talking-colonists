@@ -3,6 +3,8 @@ package me.sshcrack.mc_talking.manager.tools;
 import com.google.gson.JsonObject;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IVisitorData;
+import com.minecolonies.api.colony.buildings.IBuilding;
+import com.minecolonies.api.colony.buildings.ICommonBuilding;
 import com.minecolonies.api.colony.buildings.ModBuildings;
 import com.minecolonies.api.colony.interactionhandling.ChatPriority;
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
@@ -18,8 +20,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 import static com.minecolonies.api.util.constant.NbtTagConstants.TAG_ID;
 import static com.minecolonies.api.util.constant.SchematicTagConstants.TAG_SITTING;
@@ -38,19 +38,20 @@ public class LeaveColonyAction extends FunctionAction {
         var visitorManager = colony.getVisitorManager();
 
 
-        var building = colony.getBuildingManager().getFirstBuildingMatching(e -> e.getBuildingType().equals(ModBuildings.tavern.get()));
+        IBuilding building = colony.getServerBuildingManager().getFirstBuildingMatching(e -> e.getBuildingType().equals(ModBuildings.tavern.get()));
         if (building == null) {
             var invalidReturn = new JsonObject();
             invalidReturn.addProperty("error", "No tavern found in the colony.");
             return invalidReturn;
         }
 
-        var module = building.getFirstModuleOccurance(TavernBuildingModule.class);
+        var module = building.getModule(TavernBuildingModule.class);
         if (module == null) {
             var invalidReturn = new JsonObject();
             invalidReturn.addProperty("error", "No tavern found in the colony.");
             return invalidReturn;
-        }        var data = citizen.getCitizenData();
+        }
+        var data = citizen.getCitizenData();
         var level = citizen.level();
         var pos = citizen.blockPosition();
 
@@ -59,13 +60,13 @@ public class LeaveColonyAction extends FunctionAction {
 
         // Create recruitment cost
         final ItemStack recruitCost = Items.DIAMOND.getDefaultInstance();
-        
+
         // Add lore to the item
         CompoundTag display = recruitCost.getOrCreateTagElement("display");
         ListTag loreTag = new ListTag();
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(Component.translatable("mc_talking.recruit_lore"))));
         display.put("Lore", loreTag);
-        
+
         recruitCost.setCount(16);
 
         // Remove the original citizen
