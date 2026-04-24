@@ -25,5 +25,36 @@ public interface CitizenPromptProvider {
      * @param status stable status data view
      * @return status text
      */
-    String formatStatus(CitizenStatusView status);
+    default String formatStatus(CitizenStatusView status) {
+        switch (status.type()) {
+            case WORKING:
+                return "working";
+            case SLEEP:
+                return "sleeping";
+            case HOUSE:
+                return "at home";
+            case RAIDED:
+                return "on alert (raid)";
+            case MOURNING:
+                var deceased = String.join(",", status.contextValues());
+                return "mourning " + deceased;
+            case BAD_WEATHER:
+                return "sheltering from bad weather";
+            case SICK:
+                return "ill and needing care";
+            case EAT:
+                return "hungry and looking for food";
+            case UNKNOWN:
+            default:
+                break;
+        }
+
+        String translationKey = status.translationKey();
+        if (translationKey.contains(".")) {
+            String[] parts = translationKey.split("\\.");
+            return parts[parts.length - 1].toLowerCase().replace('_', ' ');
+        }
+
+        return translationKey;
+    }
 }
