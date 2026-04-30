@@ -37,6 +37,10 @@ platform {
             curseforge = "simple-voice-chat"
             forgeLikeVersionRange = "[${voicechat_version},)"
         }
+        optional("nbt") {
+            curseforge = "nbt"
+            forgeLikeVersionRange = "[${prop("deps.nbt_mc_version")},)"
+        }
     }
 }
 
@@ -158,6 +162,8 @@ dependencies {
     modRuntimeOnly("com.ldtteam:domum_ornamentum:${prop("deps.domum_version")}:universal")
     modRuntimeOnly("com.ldtteam:structurize:${prop("deps.structurize_version")}")
     modRuntimeOnly("com.ldtteam:blockui:${prop("deps.blockui_version")}")
+
+    modImplementation("curse.maven:${prop("deps.nbt_curseforge_id")}:${prop("deps.nbt_curseforge_version")}")
 }
 
 sourceSets {

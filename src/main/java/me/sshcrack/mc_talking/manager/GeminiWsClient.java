@@ -12,6 +12,7 @@ import me.sshcrack.gemini_live_lib.gson.RealtimeInput;
 import me.sshcrack.gemini_live_lib.websocket.handshake.ServerHandshake;
 import me.sshcrack.mc_talking.ConversationManager;
 import me.sshcrack.mc_talking.McTalking;
+import me.sshcrack.mc_talking.compat.CitizenTextOutputHandler;
 import me.sshcrack.mc_talking.config.ModalityModes;
 import me.sshcrack.mc_talking.duck.CitizenDataMemoryExtended;
 import me.sshcrack.mc_talking.manager.audio.AudioProvider;
@@ -214,7 +215,7 @@ public abstract class GeminiWsClient extends GeminiLiveClient {
         if (sPlayer == null || currentTurnTranscript.isBlank())
             return;
         if (CONFIG.modality.get() == ModalityModes.TEXT || CONFIG.modality.get() == ModalityModes.TEXT_AND_AUDIO) {
-            sPlayer.sendSystemMessage(entity.getDisplayName().copy().append(": ").append(Component.literal(currentTurnTranscript.trim())));
+            CitizenTextOutputHandler.outputText(currentTurnTranscript.trim(), sPlayer, entity);
         }
 
         currentTurnTranscript = "";
@@ -228,7 +229,8 @@ public abstract class GeminiWsClient extends GeminiLiveClient {
         var sPlayer = resolveActivePlayer();
         if (sPlayer == null || currentTurnTranscript.isBlank())
             return;
-        sPlayer.sendSystemMessage(entity.getDisplayName().copy().append(": ").append(Component.literal(currentTurnTranscript.trim())));
+
+        CitizenTextOutputHandler.outputText(currentTurnTranscript.trim(), sPlayer, entity);
         currentTurnTranscript = "";
     }
 

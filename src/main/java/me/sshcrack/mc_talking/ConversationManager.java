@@ -26,8 +26,8 @@ import net.minecraft.core.component.DataComponents;
 /*? }*/
 /*? if forge {*/
 /*import net.minecraft.nbt.CompoundTag;
- */
-/*? }*/
+ 
+*//*? }*/
 
 /**
  * Manages conversations between players and citizens, including tracking

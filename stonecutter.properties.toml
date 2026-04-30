@@ -30,6 +30,9 @@ deps.structurize_version="1.20.1-1.0.806-snapshot"
 deps.blockui_version="1.20.1-1.0.190-snapshot"
 deps.domum_version="1.20.1-1.0.288-snapshot"
 
+# Corresponds to forge 1.0.5
+deps.nbt_curseforge_version="5367409"
+deps.nbt_mc_version="1.0.5"
 
 [neoforge]
 
@@ -41,3 +44,6 @@ deps.minecolonies_version="1.1.1305-1.21.1-snapshot"
 deps.structurize_version="1.0.823-1.21.1-snapshot"
 deps.blockui_version="1.0.211-1.21.1-snapshot"
 deps.domum_version="1.0.233-snapshot"
+# Corresponds to neoforge version 4.0.2
+deps.nbt_curseforge_version="6307058"
+deps.nbt_mc_version="4.0.2"
