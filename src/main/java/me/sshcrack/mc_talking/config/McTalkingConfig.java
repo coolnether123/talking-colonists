@@ -63,7 +63,7 @@ public class McTalkingConfig {
     @AutoGen(category = "api")
     @StringField
     @SerialEntry(comment = "OpenRouter model ID used for text generation.")
-    public String openRouterModel = "google/gemini-2.5-flash-lite";
+    public String openRouterModel = "qwen/qwen3.5-flash-02-23";
 
     @AutoGen(category = "api")
     @StringField
