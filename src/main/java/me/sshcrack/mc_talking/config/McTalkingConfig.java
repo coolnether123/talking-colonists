@@ -63,7 +63,7 @@ public class McTalkingConfig {
     @AutoGen(category = "api")
     @StringField
     @SerialEntry(comment = "OpenRouter model ID used for text generation.")
-    public String openRouterModel = "qwen/qwen3.5-flash-02-23";
+    public String openRouterModel = "inception/mercury-2";
 
     @AutoGen(category = "api")
     @StringField
@@ -93,7 +93,7 @@ public class McTalkingConfig {
     @AutoGen(category = "api")
     @IntField(min = 16, max = 1000)
     @SerialEntry(comment = "Maximum output tokens for one OpenRouter citizen reply.")
-    public int openRouterMaxTokens = 120;
+    public int openRouterMaxTokens = 80;
 
     // Language Configuration
     @AutoGen(category = "general")
