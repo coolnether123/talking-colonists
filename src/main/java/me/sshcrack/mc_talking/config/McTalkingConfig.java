@@ -47,8 +47,53 @@ public class McTalkingConfig {
 
     @AutoGen(category = "api")
     @EnumCycler
+    @SerialEntry(comment = "Conversation backend. GEMINI_LIVE uses Gemini WebSockets. OPENROUTER_OPENAI_AUDIO uses turn-based OpenAI transcription/TTS plus OpenRouter text generation.")
+    public AiConversationBackend aiConversationBackend = AiConversationBackend.GEMINI_LIVE;
+
+    @AutoGen(category = "api")
+    @EnumCycler
     @SerialEntry(comment = "What kind of Gemini Live model to use for voice conversations.")
-    public AvailableAI currentAiModel = AvailableAI.Gemini25FlashNativeAudioLatest;
+    public AvailableAI currentAiModel = AvailableAI.Flash3;
+
+    @AutoGen(category = "api")
+    @StringField
+    @SerialEntry(comment = "OpenRouter API key used for cheaper text generation when aiConversationBackend is OPENROUTER_OPENAI_AUDIO.")
+    public String openRouterApiKey = "";
+
+    @AutoGen(category = "api")
+    @StringField
+    @SerialEntry(comment = "OpenRouter model ID used for text generation.")
+    public String openRouterModel = "google/gemini-2.5-flash-lite";
+
+    @AutoGen(category = "api")
+    @StringField
+    @SerialEntry(comment = "OpenAI API key used for speech-to-text and text-to-speech in the OpenRouter/OpenAI audio backend.")
+    public String openAiApiKey = "";
+
+    @AutoGen(category = "api")
+    @EnumCycler
+    @SerialEntry(comment = "Speech-to-text backend for the OpenRouter/OpenAI audio pipeline.")
+    public SpeechToTextBackend speechToTextBackend = SpeechToTextBackend.OPENAI_WHISPER;
+
+    @AutoGen(category = "api")
+    @EnumCycler
+    @SerialEntry(comment = "Text-to-speech backend for the OpenRouter/OpenAI audio pipeline.")
+    public TextToSpeechBackend textToSpeechBackend = TextToSpeechBackend.OPENAI_GPT4O_MINI_TTS;
+
+    @AutoGen(category = "api")
+    @StringField
+    @SerialEntry(comment = "OpenAI TTS voice for generated citizen speech.")
+    public String openAiTtsVoice = "coral";
+
+    @AutoGen(category = "api")
+    @DoubleSlider(min = 0.0, max = 2.0, step = 0.1)
+    @SerialEntry(comment = "Temperature for OpenRouter text generation.")
+    public double openRouterTemperature = 0.7;
+
+    @AutoGen(category = "api")
+    @IntField(min = 16, max = 1000)
+    @SerialEntry(comment = "Maximum output tokens for one OpenRouter citizen reply.")
+    public int openRouterMaxTokens = 120;
 
     // Language Configuration
     @AutoGen(category = "general")

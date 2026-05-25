@@ -1,9 +1,11 @@
 package me.sshcrack.mc_talking;
 
 import com.minecolonies.api.entity.citizen.AbstractEntityCitizen;
+import me.sshcrack.mc_talking.config.AiConversationBackend;
 import me.sshcrack.mc_talking.item.CitizenTalkingDevice;
 import me.sshcrack.mc_talking.manager.CitizenWsClient;
-import me.sshcrack.mc_talking.manager.GeminiWsClient;
+import me.sshcrack.mc_talking.manager.ConversationClient;
+import me.sshcrack.mc_talking.manager.OpenRouterCitizenClient;
 import me.sshcrack.mc_talking.manager.audio.CitzienEntityAudioProvider;
 import me.sshcrack.mc_talking.network.AiStatus;
 import me.sshcrack.mc_talking.util.AiStatusHelper;
@@ -19,6 +21,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import me.sshcrack.mc_talking.config.McTalkingConfig;
 
@@ -54,7 +57,7 @@ public class ConversationManager {
     private ConversationManager() { /* utility class */ }
 
     // Active AI clients keyed by citizen entity UUID
-    private static final Map<UUID, GeminiWsClient> clients = new HashMap<>();
+    private static final Map<UUID, ConversationClient> clients = new HashMap<>();
 
     // playerId → citizen entity the player is talking to
     private static final Map<UUID, AbstractEntityCitizen> activeEntity = new HashMap<>();
@@ -139,7 +142,7 @@ public class ConversationManager {
      * in the client map. The slot must already have been claimed via
      * {@link #claimSlot}.
      */
-    public static synchronized void registerExternalClient(UUID entityId, GeminiWsClient client) {
+    public static synchronized void registerExternalClient(UUID entityId, ConversationClient client) {
         clients.put(entityId, client);
     }
 
@@ -183,7 +186,7 @@ public class ConversationManager {
      */
     private static void evict(UUID entityId) {
         if (entityId == null) return;
-        GeminiWsClient client = clients.remove(entityId);
+        ConversationClient client = clients.remove(entityId);
         if (client != null) client.close();
         McTalking.LOGGER.info("[ConversationManager] Evicted slot for entity {} to make room", entityId);
     }
@@ -232,7 +235,7 @@ public class ConversationManager {
      * slot is available (pool is full of player conversations).</p>
      */
     public static void startMumbling(AbstractEntityCitizen citizen) {
-        if (McTalkingConfig.INSTANCE.instance().geminiApiKey.isEmpty()) return;
+        if (!hasRequiredKeys()) return;
 
         UUID citizenId = citizen.getUUID();
 
@@ -245,7 +248,7 @@ public class ConversationManager {
             return;
         }
 
-        var client = new CitizenWsClient(citizen,
+        var client = createSystemClient(citizen,
                 c -> {
                     c.close();
                     synchronized (ConversationManager.class) {
@@ -271,7 +274,7 @@ public class ConversationManager {
      * is already busy, on cooldown, or no low-priority slot is available.</p>
      */
     public static void startUrgentContact(AbstractEntityCitizen citizen, ServerPlayer player) {
-        if (McTalkingConfig.INSTANCE.instance().geminiApiKey.isEmpty()) return;
+        if (!hasRequiredKeys()) return;
 
         UUID citizenId = citizen.getUUID();
 
@@ -282,7 +285,7 @@ public class ConversationManager {
             return;
         }
 
-        var client = new CitizenWsClient(citizen,
+        var client = createSystemClient(citizen,
                 c -> {
                     c.close();
                     synchronized (ConversationManager.class) {
@@ -303,7 +306,7 @@ public class ConversationManager {
      * citizen) it is closed first so the player always wins.</p>
      */
     public static void startConversation(ServerPlayer player, AbstractEntityCitizen citizen) {
-        if (McTalkingConfig.INSTANCE.instance().geminiApiKey.isEmpty()) {
+        if (!hasRequiredKeys()) {
             player.sendSystemMessage(
                     Component.translatable("mc_talking.no_key")
                             .withStyle(ChatFormatting.RED));
@@ -316,11 +319,13 @@ public class ConversationManager {
         activeEntity.put(playerId, citizen);
         citizenToPlayer.put(citizenId, playerId);
 
-        GeminiWsClient existingClient = clients.get(citizenId);
+        ConversationClient existingClient = clients.get(citizenId);
 
         if (existingClient instanceof CitizenWsClient cws && cws.isMumbling()) {
             // Reuse the mumbling session – slot is already held
             cws.transitionToPlayer(player);
+        } else if (existingClient instanceof OpenRouterCitizenClient orc && orc.isMumbling()) {
+            orc.transitionToPlayer(player);
         } else {
             // Close any non-player session that is occupying this citizen's slot
             if (existingClient != null) {
@@ -331,9 +336,7 @@ public class ConversationManager {
 
             // High-priority claim (may evict an older non-player slot if at capacity)
             claimSlot(citizenId, true);
-            clients.put(citizenId, new CitizenWsClient(
-                    new CitzienEntityAudioProvider(citizen, McTalkingVoicechatPlugin.DIRECT_PLAYER_DIALOG),
-                    citizen, player));
+            clients.put(citizenId, createPlayerClient(citizen, player));
         }
 
         playerConversationPartners.put(playerId, citizenId);
@@ -350,7 +353,7 @@ public class ConversationManager {
         if (citizenId == null) return;
 
         citizenToPlayer.remove(citizenId);
-        GeminiWsClient client = clients.remove(citizenId);
+        ConversationClient client = clients.remove(citizenId);
         if (client != null) client.close();
         releaseSlot(citizenId);
 
@@ -387,7 +390,7 @@ public class ConversationManager {
         return playerConversationPartners.containsKey(playerId);
     }
 
-    public static GeminiWsClient getClientForEntity(UUID entityId) {
+    public static ConversationClient getClientForEntity(UUID entityId) {
         return clients.get(entityId);
     }
 
@@ -407,17 +410,41 @@ public class ConversationManager {
     }
 
     public static boolean isCitizenMumbling(UUID citizenId) {
-        GeminiWsClient client = clients.get(citizenId);
-        return client instanceof CitizenWsClient c && c.isMumbling();
+        ConversationClient client = clients.get(citizenId);
+        return (client instanceof CitizenWsClient geminiClient && geminiClient.isMumbling())
+                || (client instanceof OpenRouterCitizenClient openRouterClient && openRouterClient.isMumbling());
     }
 
     public static void cleanup() {
-        for (GeminiWsClient client : clients.values()) client.close();
+        for (ConversationClient client : clients.values()) client.close();
         clients.clear();
         activeEntity.clear();
         playerConversationPartners.clear();
         citizenToPlayer.clear();
         addedEntities.clear();
         lastSessionEndTime.clear();
+    }
+
+    private static boolean hasRequiredKeys() {
+        var config = McTalkingConfig.INSTANCE.instance();
+        if (config.aiConversationBackend == AiConversationBackend.OPENROUTER_OPENAI_AUDIO) {
+            return !config.openRouterApiKey.isBlank() && !config.openAiApiKey.isBlank();
+        }
+        return !config.geminiApiKey.isBlank();
+    }
+
+    private static ConversationClient createPlayerClient(AbstractEntityCitizen citizen, ServerPlayer player) {
+        var audioProvider = new CitzienEntityAudioProvider(citizen, McTalkingVoicechatPlugin.DIRECT_PLAYER_DIALOG);
+        if (McTalkingConfig.INSTANCE.instance().aiConversationBackend == AiConversationBackend.OPENROUTER_OPENAI_AUDIO) {
+            return new OpenRouterCitizenClient(audioProvider, citizen, player);
+        }
+        return new CitizenWsClient(audioProvider, citizen, player);
+    }
+
+    private static ConversationClient createSystemClient(AbstractEntityCitizen citizen, Consumer<ConversationClient> onSystemEnded) {
+        if (McTalkingConfig.INSTANCE.instance().aiConversationBackend == AiConversationBackend.OPENROUTER_OPENAI_AUDIO) {
+            return new OpenRouterCitizenClient(citizen, onSystemEnded::accept);
+        }
+        return new CitizenWsClient(citizen, onSystemEnded::accept);
     }
 }

@@ -11,18 +11,6 @@ public enum AvailableAI implements NameableEnum {
     //Voice 'Fenir' isn't available for the API IDK why
 
     @SuppressWarnings("unused")
-    Gemini25FlashNativeAudioLatest("gemini-2.5-flash-native-audio-latest",
-            List.of("Puck", "Charon", "Orus", "Enceladus", "Iapetus", "Umbriel", "Algieba", "Algenib", "Rasalgethi", "Alnilam", "Schedar", "Archid", "Zubenelgenubi", "Sadachbia", "Sadaltager"),
-            List.of("Zephyr", "Kore", "Leda", "Aoede", "Callirrhoe", "Autonoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Vindemiatrix", "Sulafat")
-    ),
-
-    @SuppressWarnings("unused")
-    Gemini25FlashNativeAudioPreview092025("gemini-2.5-flash-native-audio-preview-09-2025",
-            List.of("Puck", "Charon", "Orus", "Enceladus", "Iapetus", "Umbriel", "Algieba", "Algenib", "Rasalgethi", "Alnilam", "Schedar", "Archid", "Zubenelgenubi", "Sadachbia", "Sadaltager"),
-            List.of("Zephyr", "Kore", "Leda", "Aoede", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Vindemiatrix", "Sulafat")
-    ),
-
-    @SuppressWarnings("unused")
     Flash3("gemini-3.1-flash-live-preview",
             List.of("Puck", "Charon", "Orus", "Enceladus", "Iapetus", "Umbriel", "Algieba", "Algenib", "Rasalgethi", "Alnilam", "Schedar", "Archid", "Zubenelgenubi", "Sadachbia", "Sadaltager"),
             List.of("Zephyr", "Kore", "Leda", "Aoede", "Callirrhoe", "Autonoe", "Despina", "Erinome", "Laomedeia", "Achernar", "Gacrux", "Pulcherrima", "Vindemiatrix", "Sulafat")

@@ -11,7 +11,7 @@ import de.maxhenkel.voicechat.api.events.VoicechatServerStartedEvent;
 import de.maxhenkel.voicechat.api.events.VoicechatServerStoppedEvent;
 import me.sshcrack.mc_talking.conversations.memory.CitizenMemoryGenerator;
 import me.sshcrack.mc_talking.conversations.memory.PlayerConversationMemoryGenerator;
-import me.sshcrack.mc_talking.manager.GeminiWsClient;
+import me.sshcrack.mc_talking.manager.ConversationClient;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
@@ -232,9 +232,17 @@ public class McTalkingVoicechatPlugin implements VoicechatPlugin {
         return opusData.length > minimumVoicePacketSize;
     }
 
-    private void scheduleSilenceTask(UUID entityId, GeminiWsClient manager) {
+    private void scheduleSilenceTask(UUID entityId, ConversationClient manager) {
         // Only send silence if a silence task is not already running for this entity
         if (silenceTimeouts.containsKey(entityId)) {
+            return;
+        }
+
+        if (!manager.requiresSilencePadding()) {
+            manager.onAudioInputStopped();
+            lastVoiceActivity.remove(entityId);
+            speechEndDetections.remove(entityId);
+            consecutiveSilentPackets.remove(entityId);
             return;
         }
 

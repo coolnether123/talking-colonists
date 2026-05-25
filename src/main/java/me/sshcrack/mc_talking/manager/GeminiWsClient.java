@@ -32,7 +32,7 @@ import java.util.Objects;
 import static me.sshcrack.mc_talking.McTalkingVoicechatPlugin.vcApi;
 import me.sshcrack.mc_talking.config.McTalkingConfig;
 
-public abstract class GeminiWsClient extends GeminiLiveClient {
+public abstract class GeminiWsClient extends GeminiLiveClient implements ConversationClient {
     /**
      * This variable is used to track if the quota has been exceeded
      */
@@ -103,6 +103,16 @@ public abstract class GeminiWsClient extends GeminiLiveClient {
 
     public void endConversationWhenPossible() {
         this.shouldEndConversation = true;
+    }
+
+    @Override
+    public void onAudioInputStopped() {
+        // Gemini Live needs a short tail of silence to close the current audio turn.
+    }
+
+    @Override
+    public boolean requiresSilencePadding() {
+        return true;
     }
 
     /**
