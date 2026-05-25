@@ -47,8 +47,8 @@ public class McTalkingConfig {
 
     @AutoGen(category = "api")
     @EnumCycler
-    @SerialEntry(comment = "What kind of AI model to use. Right now, this is the only one Google offers")
-    public AvailableAI currentAiModel = AvailableAI.Flash3;
+    @SerialEntry(comment = "What kind of Gemini Live model to use for voice conversations.")
+    public AvailableAI currentAiModel = AvailableAI.Gemini25FlashNativeAudioLatest;
 
     // Language Configuration
     @AutoGen(category = "general")
